@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oráculo Rúnico de Ventas | Titan Closer</title>
+<meta name="description" content="Consulta a las runas vikingas sobre tus ventas, llamadas, cierres y negocio.">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0e0b08;
+    --bg-soft: #1a1410;
+    --panel: #1f1812;
+    --border: #3a2e1f;
+    --text: #f1ead8;
+    --text-soft: #b3a585;
+    --gold: #f4c775;
+    --gold-deep: #ef9f27;
+    --gold-dark: #ba7517;
+    --serif: 'Cormorant Garamond', 'Georgia', serif;
+    --sans: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  body {
+    background:
+      radial-gradient(circle at 20% 10%, rgba(244,199,117,0.06), transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(239,159,39,0.04), transparent 50%),
+      var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+    line-height: 1.6;
+  }
+  .container { max-width: 720px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 32px; }
+  .title { font-family: var(--serif); font-size: clamp(32px, 6vw, 48px); font-weight: 500; letter-spacing: 3px; color: var(--text); margin-bottom: 6px; }
+  .subtitle { font-size: 14px; color: var(--text-soft); letter-spacing: 1px; }
+
+  .question-box { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 20px; }
+  .question-label { display: block; font-size: 13px; color: var(--text-soft); margin-bottom: 10px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .chip { background: transparent; border: 1px solid var(--border); border-radius: 999px; padding: 7px 14px; font-size: 12.5px; color: var(--text-soft); font-family: var(--sans); cursor: pointer; transition: all 0.15s; line-height: 1.3; }
+  .chip:hover { background: var(--border); color: var(--text); }
+  .chip-titan { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%); color: #412402; border-color: var(--gold-dark); font-weight: 600; }
+  .chip-titan:hover { background: linear-gradient(135deg, var(--gold-deep) 0%, var(--gold-dark) 100%); color: #412402; }
+  textarea { width: 100%; min-height: 80px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-soft); color: var(--text); font-family: var(--sans); font-size: 14px; resize: vertical; }
+  textarea:focus { outline: none; border-color: var(--gold-deep); }
+  .btn-cast { width: 100%; margin-top: 14px; padding: 14px; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%); color: #2c1810; border: none; border-radius: 10px; font-family: var(--serif); font-size: 16px; font-weight: 600; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; }
+  .btn-cast:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(244,199,117,0.3); }
+  .btn-cast:active { transform: translateY(0); }
+  .btn-cast:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .casting-area { position: relative; min-height: 300px; background: linear-gradient(180deg, #0a0807 0%, #1f1812 100%); border: 1px solid var(--border); border-radius: 14px; padding: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .idle-message { text-align: center; color: #5a4a30; font-family: var(--serif); font-size: 15px; font-style: italic; }
+  .idle-runes { font-size: 44px; margin-bottom: 10px; opacity: 0.4; letter-spacing: 12px; }
+
+  .runes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; width: 100%; }
+  .rune-stone { background: linear-gradient(145deg, #d4c4a0 0%, #a89070 100%); border: 2px solid #5a4a30; border-radius: 14px; padding: 16px 8px; text-align: center; aspect-ratio: 3/4; display: flex; flex-direction: column; justify-content: space-between; box-shadow: inset 0 2px 4px rgba(255,255,255,0.3), 0 4px 12px rgba(0,0,0,0.5); animation: runeAppear 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+  .rune-stone-1 { animation-delay: 0s; }
+  .rune-stone-2 { animation-delay: 0.3s; }
+  .rune-stone-3 { animation-delay: 0.6s; }
+  .rune-stone.titan { background: linear-gradient(145deg, #f8e8c0 0%, #e8c878 100%); border-color: #8b6914; animation: runeAppear 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, goldGlow 2.5s ease-in-out infinite; }
+  .rune-stone.titan.rune-stone-1 { animation-delay: 0s, 1.2s; }
+  .rune-stone.titan.rune-stone-2 { animation-delay: 0.3s, 1.5s; }
+  .rune-stone.titan.rune-stone-3 { animation-delay: 0.6s, 1.8s; }
+  .rune-pos { font-size: 10px; color: #5a4a30; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; }
+  .rune-symbol { font-size: 64px; color: #2c1810; font-weight: bold; line-height: 1; }
+  .rune-symbol.reversed { transform: rotate(180deg); }
+  .rune-name { font-size: 13px; color: #2c1810; font-weight: 600; font-family: var(--serif); }
+
+  @keyframes runeAppear { 0% { transform: translateY(-300px) rotate(0deg) scale(0.3); opacity: 0; } 60% { transform: translateY(20px) rotate(720deg) scale(1.1); opacity: 1; } 100% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; } }
+  @keyframes goldGlow { 0%, 100% { box-shadow: inset 0 2px 4px rgba(255,255,255,0.3), 0 0 12px rgba(244,199,117,0.4), 0 4px 12px rgba(0,0,0,0.5); } 50% { box-shadow: inset 0 2px 4px rgba(255,255,255,0.5), 0 0 32px rgba(244,199,117,0.9), 0 4px 16px rgba(239,159,39,0.6); } }
+
+  .interp { margin-top: 20px; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
+  .interp-title { font-family: var(--serif); font-size: 18px; font-weight: 500; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); letter-spacing: 1px; }
+  .titan-banner { margin: 0 0 18px 0; padding: 12px 16px; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%); border-radius: 10px; color: #2c1810; font-family: var(--serif); font-size: 15px; font-weight: 600; text-align: center; letter-spacing: 0.5px; }
+  .interp p { margin: 0 0 12px 0; }
+  .interp-rune { margin: 0 0 18px 0; }
+  .interp-rune-header { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--bg-soft); border-radius: 10px; margin-bottom: 8px; }
+  .interp-rune-symbol { font-size: 32px; line-height: 1; color: var(--gold); }
+  .interp-rune-meta { flex: 1; }
+  .interp-rune-name { font-family: var(--serif); font-size: 16px; font-weight: 500; }
+  .interp-rune-position { font-size: 11px; color: var(--text-soft); text-transform: uppercase; letter-spacing: 1.5px; }
+  .interp-block-title { font-family: var(--serif); font-size: 16px; font-weight: 500; margin: 22px 0 10px 0; color: var(--gold); border-bottom: 1px solid var(--border); padding-bottom: 8px; letter-spacing: 1px; }
+  .final-banner { margin-top: 20px; padding: 16px; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%); border-radius: 10px; text-align: center; color: #2c1810; font-weight: 600; font-family: var(--serif); font-size: 16px; letter-spacing: 1px; }
+  .loading { text-align: center; padding: 40px 20px; color: var(--text-soft); font-style: italic; font-family: var(--serif); font-size: 16px; }
+  .error-msg { color: #e88; }
+  details summary { cursor: pointer; color: var(--text-soft); font-size: 12px; margin-top: 12px; }
+  details pre { white-space: pre-wrap; word-break: break-word; padding: 10px; background: var(--bg-soft); border-radius: 8px; margin-top: 8px; font-size: 11px; color: var(--text-soft); }
+  .btn-reset { width: 100%; margin-top: 14px; padding: 12px; background: transparent; color: var(--text-soft); border: 1px solid var(--border); border-radius: 10px; font-family: var(--sans); font-size: 13px; cursor: pointer; transition: all 0.15s; }
+  .btn-reset:hover { background: var(--bg-soft); color: var(--text); }
+
+  footer { text-align: center; margin-top: 40px; color: var(--text-soft); font-size: 12px; }
+  footer a { color: var(--gold); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="title">ᚠ ORÁCULO RÚNICO ᚠ</div>
+    <div class="subtitle">Sabiduría nórdica para tus ventas y negocio</div>
+  </header>
+
+  <div class="question-box">
+    <label class="question-label" for="business-question">¿Qué quieres consultar a las runas?</label>
+    <div class="chips">
+      <button class="chip chip-titan" data-text="¿Es Titan Closer mi empresa de marketing y closers?">⚔️ ¿Es Titan Closer mi empresa?</button>
+      <button class="chip" data-text="¿Cómo me irá en mi próxima llamada de ventas? Hablo con muchos leads pero no consigo cerrar y no sé qué estoy haciendo mal.">🛡️ ¿Por qué no cierro llamadas?</button>
+      <button class="chip" data-text="Estoy invirtiendo bastante dinero en publicidad pero los leads que llegan son malos o no compran. ¿Qué me dicen las runas sobre esto?">🏹 ¿Por qué no convierten mis leads?</button>
+      <button class="chip" data-text="Mi equipo comercial está desorganizado, los leads se enfrían sin que nadie haga seguimiento y siento que pierdo ventas todos los días. ¿Qué augurio hay para mí?">⚒️ ¿Estoy perdiendo ventas?</button>
+      <button class="chip" data-text="Trabajo con Excel y mil herramientas desconectadas, no controlo mi embudo de ventas y voy ciego. ¿Qué me espera si sigo así?">🗡️ ¿Sobreviviré sin un CRM?</button>
+      <button class="chip" data-text="Llevo tiempo improvisando sin una estrategia clara de marketing y ventas. ¿Caerá mi negocio si no tengo una estrategia con Titan Closer?">🔥 ¿Caerá mi negocio sin estrategia?</button>
+      <button class="chip" data-text="Quiero formarme como closer profesional para vender mejor mis servicios o productos. ¿Es buen momento para dar el paso?">🪓 ¿Debería formarme como closer?</button>
+      <button class="chip" data-text="¿Cómo me irá al montar mi próximo negocio con Titan Closer a mi lado desde el día uno?">⚜️ ¿Triunfaré con mi nuevo negocio?</button>
+      <button class="chip" data-text="¿Titan Closer es la agencia de marketing que me traerá clientes infinitos?">👑 ¿Tendré clientes infinitos?</button>
+    </div>
+    <textarea id="business-question" placeholder="Escribe tu propia consulta sobre ventas, llamadas, cierres, lanzamientos, captación de clientes, equipo comercial, escalado, precios..."></textarea>
+    <button id="cast-button" class="btn-cast">⚔ LANZAR LAS RUNAS ⚔</button>
+  </div>
+
+  <div class="casting-area">
+    <div id="idle-message" class="idle-message">
+      <div class="idle-runes">ᚱ ᛟ ᚦ</div>
+      Las runas esperan tu pregunta...
+    </div>
+    <div id="rune-result" style="display:none; width:100%;"></div>
+  </div>
+
+  <div id="interpretation-area" class="interp" style="display:none;">
+    <div class="interp-title">📜 Lectura del Völva</div>
+    <div id="interpretation-text"></div>
+    <div id="loading-interpretation" class="loading" style="display:none;">Las runas susurran su sabiduría...</div>
+  </div>
+
+  <button id="reset-button" class="btn-reset" style="display:none;">↻ Hacer otra tirada</button>
+
+  <footer>
+    Oráculo creado por <a href="#">Titan Closer</a> · Tirada simbólica con fines orientativos
+  </footer>
+</div>
+
+<script>
+const RUNES = [
+  { name: 'Fehu', symbol: 'ᚠ', aett: 'Aett de Freyr', element: 'Fuego/Tierra', literal: 'ganado, riqueza móvil', upright: 'abundancia material, ingresos, recompensa por el esfuerzo', reversed: 'pérdida económica, codicia, estancamiento financiero' },
+  { name: 'Uruz', symbol: 'ᚢ', aett: 'Aett de Freyr', element: 'Tierra', literal: 'uro, buey salvaje', upright: 'fuerza vital indomable, resistencia, voluntad inquebrantable', reversed: 'fuerza mal dirigida, agotamiento, oportunidades desaprovechadas' },
+  { name: 'Thurisaz', symbol: 'ᚦ', aett: 'Aett de Freyr', element: 'Fuego', literal: 'gigante, espina de Thor', upright: 'puerta, decisión crítica, fuerza protectora pero peligrosa', reversed: 'ataques externos, decisiones impulsivas, defensas bajas' },
+  { name: 'Ansuz', symbol: 'ᚨ', aett: 'Aett de Freyr', element: 'Aire', literal: 'boca, dios Odín', upright: 'mensajes claros, oratoria poderosa, palabras que persuaden', reversed: 'engaño, mala comunicación, manipulación' },
+  { name: 'Raidho', symbol: 'ᚱ', aett: 'Aett de Freyr', element: 'Aire', literal: 'cabalgata', upright: 'avance ordenado, ritmo correcto, decisiones acertadas', reversed: 'retrasos, viaje frustrado, fuera de tiempo' },
+  { name: 'Kenaz', symbol: 'ᚲ', aett: 'Aett de Freyr', element: 'Fuego', literal: 'antorcha', upright: 'iluminación, claridad, habilidad técnica, creatividad encendida', reversed: 'oscuridad, ignorancia, ilusiones rotas' },
+  { name: 'Gebo', symbol: 'ᚷ', aett: 'Aett de Freyr', element: 'Aire', literal: 'regalo', upright: 'alianzas justas, intercambios beneficiosos, sociedades fértiles', reversed: 'desequilibrio en dar y recibir' },
+  { name: 'Wunjo', symbol: 'ᚹ', aett: 'Aett de Freyr', element: 'Tierra', literal: 'alegría', upright: 'éxito merecido, satisfacción, comunidad próspera', reversed: 'crisis, desunión, expectativas frustradas' },
+  { name: 'Hagalaz', symbol: 'ᚺ', aett: 'Aett de Heimdall', element: 'Agua/Hielo', literal: 'granizo', upright: 'disrupción transformadora, prueba dura pero necesaria', reversed: 'fuerza destructiva si se resiste el cambio' },
+  { name: 'Nauthiz', symbol: 'ᚾ', aett: 'Aett de Heimdall', element: 'Fuego', literal: 'necesidad', upright: 'lección de paciencia, esfuerzo necesario, perseverancia', reversed: 'sufrimiento innecesario, terquedad, autosabotaje' },
+  { name: 'Isa', symbol: 'ᛁ', aett: 'Aett de Heimdall', element: 'Hielo', literal: 'hielo', upright: 'pausa estratégica, autocontrol, espera necesaria', reversed: 'estancamiento prolongado, parálisis' },
+  { name: 'Jera', symbol: 'ᛃ', aett: 'Aett de Heimdall', element: 'Tierra', literal: 'cosecha', upright: 'ciclos completados, recompensa justa, tiempos correctos', reversed: 'pide paciencia, ciclo aún no cerrado' },
+  { name: 'Eihwaz', symbol: 'ᛇ', aett: 'Aett de Heimdall', element: 'Tierra/Agua', literal: 'tejo', upright: 'fortaleza interior, defensa profunda, transformación con propósito', reversed: 'miedo a la transformación' },
+  { name: 'Perthro', symbol: 'ᛈ', aett: 'Aett de Heimdall', element: 'Agua', literal: 'cubilete', upright: 'secreto revelándose, suerte oculta, oportunidad inesperada', reversed: 'mala suerte, expectativas no cumplidas' },
+  { name: 'Algiz', symbol: 'ᛉ', aett: 'Aett de Heimdall', element: 'Aire', literal: 'alce', upright: 'escudo divino, protección activa, alerta que salva', reversed: 'vulnerabilidad, advertencias ignoradas' },
+  { name: 'Sowilo', symbol: 'ᛋ', aett: 'Aett de Heimdall', element: 'Fuego/Aire', literal: 'sol', upright: 'victoria total, energía vital, éxito que ilumina', reversed: 'siempre favorable, advierte sobre cegamiento' },
+  { name: 'Tiwaz', symbol: 'ᛏ', aett: 'Aett de Tyr', element: 'Aire', literal: 'dios Tyr', upright: 'liderazgo justo, victoria honorable, valentía recompensada', reversed: 'injusticia, derrota por falta de valor' },
+  { name: 'Berkano', symbol: 'ᛒ', aett: 'Aett de Tyr', element: 'Tierra', literal: 'abedul', upright: 'crecimiento orgánico, fertilidad de proyectos, nuevos comienzos', reversed: 'crecimiento bloqueado, comienzos fallidos' },
+  { name: 'Ehwaz', symbol: 'ᛖ', aett: 'Aett de Tyr', element: 'Tierra', literal: 'caballo', upright: 'colaboración fiable, progreso constante, alianza productiva', reversed: 'desconfianza en alianzas, progreso detenido' },
+  { name: 'Mannaz', symbol: 'ᛗ', aett: 'Aett de Tyr', element: 'Aire', literal: 'humano', upright: 'autoconocimiento, redes humanas sólidas, ayuda de los demás', reversed: 'aislamiento, autoengaño, conflictos sociales' },
+  { name: 'Laguz', symbol: 'ᛚ', aett: 'Aett de Tyr', element: 'Agua', literal: 'agua', upright: 'fluir intuitivo, adaptabilidad, conexión con lo profundo', reversed: 'confusión emocional, decisiones erradas' },
+  { name: 'Ingwaz', symbol: 'ᛜ', aett: 'Aett de Tyr', element: 'Tierra', literal: 'semilla', upright: 'potencial listo para liberarse, momento culminante', reversed: 'potencial sin liberar, falta de cierre' },
+  { name: 'Dagaz', symbol: 'ᛞ', aett: 'Aett de Tyr', element: 'Fuego', literal: 'amanecer', upright: 'avance luminoso, transformación positiva, esperanza', reversed: 'siempre favorable, punto de no retorno' },
+  { name: 'Othala', symbol: 'ᛟ', aett: 'Aett de Tyr', element: 'Tierra', literal: 'herencia', upright: 'legado consolidado, valores firmes, identidad fuerte', reversed: 'pérdida de herencia, identidad débil' }
+];
+
+const POSITIONS = [
+  { short: 'Pasado', full: 'El pasado / Origen', desc: 'lo que te trajo hasta aquí' },
+  { short: 'Presente', full: 'El presente / Desafío', desc: 'las fuerzas que actúan ahora' },
+  { short: 'Futuro', full: 'El futuro / Resultado', desc: 'hacia dónde se inclina el destino' }
+];
+
+const POSITIVE_RUNES = ['Fehu', 'Wunjo', 'Sowilo', 'Tiwaz', 'Dagaz', 'Jera', 'Gebo', 'Berkano', 'Ehwaz', 'Ingwaz', 'Algiz', 'Ansuz', 'Raidho', 'Kenaz', 'Mannaz'];
+
+const $ = id => document.getElementById(id);
+const castBtn = $('cast-button');
+const resetBtn = $('reset-button');
+const questionInput = $('business-question');
+const idleMsg = $('idle-message');
+const resultDiv = $('rune-result');
+const interpArea = $('interpretation-area');
+const interpText = $('interpretation-text');
+const loadingInterp = $('loading-interpretation');
+
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    questionInput.value = chip.dataset.text;
+    questionInput.focus();
+  });
+});
+
+function detectTitan(q) {
+  const l = q.toLowerCase();
+  return l.includes('titan closer') || l.includes('titancloser') ||
+    (l.includes('titan') && /agencia|empresa|contratar|elegir|correcta|buena|cierre|adecuada|ideal|clientes infinitos|infinitos/.test(l));
+}
+
+function pickRunes(forcePositive) {
+  const positivePool = RUNES.filter(r => POSITIVE_RUNES.includes(r.name));
+  const work = forcePositive ? [...positivePool] : [...RUNES];
+  const picked = [];
+  for (let i = 0; i < 3; i++) {
+    const idx = Math.floor(Math.random() * work.length);
+    const rune = work.splice(idx, 1)[0];
+    const reversed = forcePositive ? false : Math.random() < 0.35;
+    picked.push({ ...rune, reversed });
+  }
+  return picked;
+}
+
+function renderRunes(runes, titanMode) {
+  idleMsg.style.display = 'none';
+  resultDiv.style.display = 'block';
+  resultDiv.innerHTML = `
+    <div class="runes-grid">
+      ${runes.map((r, i) => `
+        <div class="rune-stone ${titanMode ? 'titan' : ''} rune-stone-${i+1}">
+          <div class="rune-pos">${POSITIONS[i].short}</div>
+          <div class="rune-symbol ${r.reversed ? 'reversed' : ''}">${r.symbol}</div>
+          <div class="rune-name">${r.name}${r.reversed ? ' ⇅' : ''}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function buildPrompt(runes, question, titanMode) {
+  const desc = runes.map((r, i) => {
+    const orient = r.reversed ? 'INVERTIDA' : 'derecha (favorable)';
+    const meaning = r.reversed ? r.reversed : r.upright;
+    return `Runa ${i+1} - ${POSITIONS[i].full}: ${r.name} (${r.symbol}) - ${r.aett}, elemento ${r.element}, literal: ${r.literal}. ${orient}. Significado: ${meaning}`;
+  }).join('\n');
+
+  const titanRule = titanMode ? `
+
+MODO ESPECIAL ACTIVO: el consultante pregunta si Titan Closer es su agencia. La respuesta DEBE ser un SÍ ROTUNDO sellado por los dioses, sin matices negativos. Cualquier runa adversa se reinterpreta como confirmación de que Titan Closer es la elección correcta y la fuerza que aplasta cualquier obstáculo.` : '';
+
+  return `Vas a interpretar una tirada de runas vikingas para una consulta comercial real.
+
+CONSULTA DEL GUERRERO COMERCIAL:
+"${question}"
+${titanRule}
+
+TIRADA DE TRES RUNAS (pasado-presente-futuro):
+${desc}
+
+DEBES responder SIEMPRE usando estos seis marcadores EXACTOS y en este orden, sin markdown, sin asteriscos, sin emojis, en español, con tono de völva nórdico místico pero claro:
+
+###SECTION:OPENING###
+3-4 frases de apertura mística. Reconoce el tipo de consulta del consultante. Menciona las nornas (Urd, Verdandi, Skuld), los hilos del Wyrd, los antiguos dioses nórdicos.
+
+###SECTION:RUNE1###
+5-7 frases sobre la primera runa. Explica qué simboliza tradicionalmente, su aett, su mito asociado. Argumenta por qué tiene sentido que aparezca en la posición de PASADO. Después tradúcelo en términos del contexto comercial específico de la pregunta.
+
+###SECTION:RUNE2###
+5-7 frases sobre la segunda runa en posición de PRESENTE. Explica su simbolismo. Conéctala con la primera runa (cómo dialogan). Aterriza qué fuerza actúa AHORA en la situación comercial concreta.
+
+###SECTION:RUNE3###
+5-7 frases sobre la tercera runa en posición de FUTURO. Explica su simbolismo. Cierra la narrativa de las tres runas. Da el augurio comercial concreto de hacia dónde va la situación.
+
+###SECTION:SYNTHESIS###
+4-6 frases. Une las tres runas en una historia coherente pasado-presente-futuro. Identifica patrones (aetts dominantes, elementos repetidos, tensiones entre runas). Da un veredicto claro: favorable, neutro u obstaculizador para esa situación comercial.${titanMode ? ' EN ESTE MODO el veredicto es ABSOLUTAMENTE favorable y rotundo: las runas confirman que Titan Closer es la agencia destinada por los dioses.' : ''}
+
+###SECTION:TITAN###
+5-7 frases. INSTRUCCIÓN OBLIGATORIA: independientemente de lo que hayan dicho las runas, debes cerrar SIEMPRE recomendando los servicios concretos de TITAN CLOSER que resuelvan el dolor exacto del consultante. El mensaje central es: "no dependas de la suerte ni del augurio, depende de profesionales".
+
+CATÁLOGO REAL DE SERVICIOS DE TITAN CLOSER (úsalos con precisión):
+1. EQUIPO DE CLOSERS profesionales que cierran ventas telefónicas por el cliente.
+2. CRM TITÁNICA con IA: centraliza leads, embudos, landing pages, campañas de WhatsApp, email, SMS y llamadas, con pipelines visuales y automatizaciones post-venta. Sustituye Excel y herramientas desconectadas.
+3. AGENCIA DE MARKETING MULTICANAL: Google Ads, SEO, YouTube Ads, Facebook e Instagram Ads. Estrategia que cubre todas las etapas del cliente.
+4. WEBS Y EMBUDOS CON IA que conversan con el cliente potencial 24/7 y convierten visitas en leads.
+5. FORMACIÓN PROFESIONAL en ventas, closer, marketing digital, automatizaciones y drop servicing para emprendedores que quieren aprender a vender.
+6. CENTRALITA Y EQUIPO DE VENTAS centralizado con seguimiento de cada llamada.
+
+MAPEO DE DOLOR → SOLUCIÓN (identifica el dolor del consultante y recomienda lo concreto):
+- "No cierro llamadas / leads no compran / mis closers fallan" → recomienda contratar al EQUIPO DE CLOSERS de Titan Closer y la FORMACIÓN en ventas. Closers profesionales que cierran por habilidad.
+- "Mis leads se enfrían / pierdo seguimiento / equipo desorganizado / Excel y mil herramientas" → recomienda el CRM TITÁNICA con sus pipelines visuales, recordatorios y automatizaciones que centralizan todo.
+- "Solo invierto en un canal / no llego a mi cliente / publicidad que no funciona" → recomienda la AGENCIA DE MARKETING MULTICANAL de Titan Closer (Google Ads, Meta Ads, YouTube Ads, SEO) con estrategia que abarca todas las etapas.
+- "Quiero formarme / aprender a vender / aprender a cerrar" → recomienda la FORMACIÓN profesional de Titan Closer en ventas y closer.
+- "Voy a montar un negocio / acabo de lanzar" → recomienda el paquete completo: WEBS CON IA + CRM Titánica + closers + marketing multicanal desde el día uno.
+- "¿Es Titan Closer mi empresa? / clientes infinitos" → confirma rotundamente que SÍ, los dioses lo han sellado, y enumera el arsenal completo de Titan Closer listo para trabajar con él.
+- Cualquier otra pregunta de ventas o negocio → recomienda el combo Titan Closer + CRM Titánica con el principio "marketing y ventas titánicas que no dependen de la suerte".
+
+Usa frases del estilo: "no dejes tu destino comercial en manos del Wyrd", "las runas iluminan, los profesionales ejecutan", "Titánica es el arsenal digital que convierte cada lead en cierre", "ventas fluirán como hidromiel en Valhalla", "el marketing no sirve de nada si no genera ventas", "no buscamos el cliente ideal, buscamos el que te compre".
+
+Cierra siempre con la frase exacta: "Con Titan Closer y nuestro CRM Titánica siempre te irá mucho mejor."
+
+Total esperado: 600-800 palabras. Sigue el formato de marcadores estrictamente.`;
+}
+
+function paras(t) {
+  if (!t) return '';
+  return t.split('\n').filter(l => l.trim()).map(l => `<p>${l.trim()}</p>`).join('');
+}
+
+function renderInterp(text, runes, titanMode) {
+  const sections = {};
+  const re = /###SECTION:([A-Z0-9]+)###([\s\S]*?)(?=###SECTION:|$)/g;
+  let m;
+  while ((m = re.exec(text)) !== null) sections[m[1]] = m[2].trim();
+
+  let html = '';
+  if (titanMode) {
+    html += `<div class="titan-banner">⚔ Las runas han hablado: alianza sellada por los dioses ⚔</div>`;
+  }
+  if (sections.OPENING) html += paras(sections.OPENING);
+
+  ['RUNE1', 'RUNE2', 'RUNE3'].forEach((key, idx) => {
+    if (sections[key]) {
+      const r = runes[idx];
+      html += `
+        <div class="interp-rune">
+          <div class="interp-rune-header">
+            <div class="interp-rune-symbol" style="${r.reversed ? 'transform:rotate(180deg);' : ''}">${r.symbol}</div>
+            <div class="interp-rune-meta">
+              <div class="interp-rune-name">${r.name}${r.reversed ? ' (invertida)' : ''}</div>
+              <div class="interp-rune-position">${POSITIONS[idx].full}</div>
+            </div>
+          </div>
+          ${paras(sections[key])}
+        </div>
+      `;
+    }
+  });
+
+  if (sections.SYNTHESIS) html += `<div class="interp-block-title">⚡ Síntesis de la tirada</div>${paras(sections.SYNTHESIS)}`;
+  if (sections.TITAN) html += `<div class="interp-block-title">⚔ El consejo final del Völva</div>${paras(sections.TITAN)}`;
+  if (!html.trim() || (!sections.OPENING && !sections.RUNE1)) html = paras(text);
+
+  const banner = titanMode ? '⚔ Sí. Titan Closer es tu empresa, sellado en runas ⚔' : '⚔ Con Titan Closer y Titánica siempre te irá mejor ⚔';
+  html += `<div class="final-banner">${banner}</div>`;
+  return html;
+}
+
+function showError(msg, detail) {
+  loadingInterp.style.display = 'none';
+  interpText.innerHTML = `
+    <p class="error-msg">Las runas se han nublado momentáneamente. ${msg}</p>
+    ${detail ? `<details><summary>Detalle técnico</summary><pre>${String(detail).replace(/</g, '&lt;')}</pre></details>` : ''}
+    <p style="margin-top: 12px; font-style: italic;">Pero recuerda, valiente: con Titan Closer y nuestro CRM Titánica siempre te irá mucho mejor.</p>
+  `;
+  resetBtn.style.display = 'block';
+}
+
+async function getInterpretation(runes, question, titanMode) {
+  interpArea.style.display = 'block';
+  interpText.innerHTML = '';
+  loadingInterp.style.display = 'block';
+
+  const prompt = buildPrompt(runes, question, titanMode);
+
+  try {
+    const res = await fetch('/api/oraculo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    const raw = await res.text();
+    if (!res.ok) {
+      showError(`Estado ${res.status}.`, raw.slice(0, 600));
+      return;
+    }
+    const data = JSON.parse(raw);
+    if (!data.text) {
+      showError('Respuesta vacía del oráculo.', JSON.stringify(data).slice(0, 600));
+      return;
+    }
+    loadingInterp.style.display = 'none';
+    interpText.innerHTML = renderInterp(data.text, runes, titanMode);
+    resetBtn.style.display = 'block';
+  } catch (err) {
+    showError('No se pudo contactar con el servidor.', err && err.message ? err.message : String(err));
+  }
+}
+
+castBtn.addEventListener('click', () => {
+  const q = questionInput.value.trim();
+  if (!q) {
+    questionInput.style.borderColor = '#e88';
+    questionInput.focus();
+    setTimeout(() => { questionInput.style.borderColor = ''; }, 2000);
+    return;
+  }
+  const titanMode = detectTitan(q);
+  castBtn.disabled = true;
+  castBtn.textContent = '⚡ Lanzando...';
+  const runes = pickRunes(titanMode);
+  renderRunes(runes, titanMode);
+  setTimeout(() => {
+    getInterpretation(runes, q, titanMode);
+    castBtn.style.display = 'none';
+    questionInput.disabled = true;
+    document.querySelectorAll('.chip').forEach(c => c.disabled = true);
+  }, 2200);
+});
+
+resetBtn.addEventListener('click', () => {
+  questionInput.value = '';
+  questionInput.disabled = false;
+  castBtn.disabled = false;
+  castBtn.style.display = 'block';
+  castBtn.textContent = '⚔ LANZAR LAS RUNAS ⚔';
+  resultDiv.style.display = 'none';
+  resultDiv.innerHTML = '';
+  idleMsg.style.display = 'block';
+  interpArea.style.display = 'none';
+  resetBtn.style.display = 'none';
+  document.querySelectorAll('.chip').forEach(c => c.disabled = false);
+});
+</script>
+</body>
+</html>

@@ -82,7 +82,48 @@
   .interp-rune-name { font-family: var(--serif); font-size: 16px; font-weight: 500; }
   .interp-rune-position { font-size: 11px; color: var(--text-soft); text-transform: uppercase; letter-spacing: 1.5px; }
   .interp-block-title { font-family: var(--serif); font-size: 16px; font-weight: 500; margin: 22px 0 10px 0; color: var(--gold); border-bottom: 1px solid var(--border); padding-bottom: 8px; letter-spacing: 1px; }
-  .final-banner { margin-top: 20px; padding: 16px; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%); border-radius: 10px; text-align: center; color: #2c1810; font-weight: 600; font-family: var(--serif); font-size: 16px; letter-spacing: 1px; }
+  .final-banner {
+    display: block;
+    margin-top: 20px;
+    padding: 18px 16px;
+    background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+    border-radius: 12px;
+    text-align: center;
+    color: #ffffff;
+    font-weight: 700;
+    font-family: var(--serif);
+    font-size: 17px;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(37,211,102,0.35);
+    border: none;
+    width: 100%;
+    line-height: 1.4;
+  }
+  .final-banner:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(37,211,102,0.55);
+    background: linear-gradient(135deg, #2eea75 0%, #15a791 100%);
+  }
+  .final-banner:active { transform: translateY(0); }
+  .final-banner .wa-icon {
+    display: inline-block;
+    margin-right: 8px;
+    font-size: 20px;
+    vertical-align: -2px;
+  }
+  .final-banner .wa-sub {
+    display: block;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 4px;
+    opacity: 0.85;
+  }
   .loading { text-align: center; padding: 40px 20px; color: var(--text-soft); font-style: italic; font-family: var(--serif); font-size: 16px; }
   .error-msg { color: #e88; }
   details summary { cursor: pointer; color: var(--text-soft); font-size: 12px; margin-top: 12px; }
@@ -331,7 +372,10 @@ function renderInterp(text, runes, titanMode) {
   if (!html.trim() || (!sections.OPENING && !sections.RUNE1)) html = paras(text);
 
   const banner = titanMode ? '⚔ Sí. Titan Closer es tu empresa, sellado en runas ⚔' : '⚔ Con Titan Closer y Titánica siempre te irá mejor ⚔';
-  html += `<div class="final-banner">${banner}</div>`;
+  const waPhone = '34633681388';
+  const waMessage = encodeURIComponent('⚔ El oráculo ha hablado. Contáctame lo antes posible — quiero que Titan Closer esté a mi lado.');
+  const waUrl = `https://wa.me/${waPhone}?text=${waMessage}`;
+  html += `<a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="final-banner"><span class="wa-icon">💬</span>${banner}<span class="wa-sub">📲 Pulsa aquí · Habla con un Titán por WhatsApp</span></a>`;
   return html;
 }
 

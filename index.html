@@ -388,7 +388,7 @@ function paras(t) {
   return t.split('\n').filter(l => l.trim()).map(l => `<p>${l.trim()}</p>`).join('');
 }
 
-function renderInterp(text, runes, titanMode) {
+function renderInterp(text, runes, titanMode, question) {
   const sections = {};
   const re = /###SECTION:([A-Z0-9]+)###([\s\S]*?)(?=###SECTION:|$)/g;
   let m;
@@ -429,11 +429,15 @@ function renderInterp(text, runes, titanMode) {
 
   // Construir el texto para compartir la tirada con contactos
   const runesLine = runes.map((r, i) => `${POSITIONS[i].short}: ${r.name} ${r.symbol}${r.reversed ? ' (invertida)' : ''}`).join(' · ');
-  const cleanInterp = Object.values(sections).join('\n\n').replace(/\s+/g, ' ').trim();
-  const shareText = `⚔ El Oráculo Rúnico de Titan Closer ha hablado ⚔\n\n📜 Mi pregunta: ${question}\n\n🪨 Runas: ${runesLine}\n\n${cleanInterp}\n\n👉 Tira tus propias runas aquí: ${window.location.href}`;
+  const orderedKeys = ['OPENING', 'RUNE1', 'RUNE2', 'RUNE3', 'SYNTHESIS', 'TITAN'];
+  const cleanInterp = orderedKeys.map(k => sections[k] || '').filter(Boolean).join('\n\n').trim();
+  const safeQuestion = question || 'Mi consulta al oráculo';
+  const shareTextRaw = `⚔ El Oráculo Rúnico de Titan Closer ha hablado ⚔\n\n📜 Mi pregunta: ${safeQuestion}\n\n🪨 Runas: ${runesLine}\n\n${cleanInterp}\n\n👉 Tira tus propias runas aquí: ${window.location.href}`;
+  // Guardar el texto en una variable global para que el handler lo lea sin pasar por data-attribute
+  window.__lastShareText = shareTextRaw;
 
   html += `<a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="final-banner"><span class="wa-icon">💬</span>${banner}<span class="wa-sub">📲 Pulsa aquí · Habla con un Titán por WhatsApp</span></a>`;
-  html += `<button type="button" id="share-runes-btn" class="share-banner" data-share="${encodeURIComponent(shareText)}"><span class="share-icon">📤</span>Compartir mi tirada con mis contactos<span class="share-sub">⚔ WhatsApp · Telegram · SMS · y más</span></button>`;
+  html += `<button type="button" id="share-runes-btn" class="share-banner"><span class="share-icon">📤</span>Compartir mi tirada con mis contactos<span class="share-sub">⚔ WhatsApp · Telegram · SMS · y más</span></button>`;
   html += `<div id="share-feedback" class="share-feedback"></div>`;
   return html;
 }
@@ -442,7 +446,8 @@ function renderInterp(text, runes, titanMode) {
 document.addEventListener('click', async (e) => {
   const btn = e.target.closest('#share-runes-btn');
   if (!btn) return;
-  const text = decodeURIComponent(btn.dataset.share || '');
+  const text = window.__lastShareText || '';
+  if (!text) return;
   const feedback = document.getElementById('share-feedback');
 
   // Intentar usar la Web Share API nativa (en móvil abre selector con WhatsApp, Telegram, SMS, etc.)
@@ -458,8 +463,7 @@ document.addEventListener('click', async (e) => {
       }
       return;
     } catch (err) {
-      if (err && err.name === 'AbortError') return; // El usuario canceló
-      // Si falla por otra razón, caemos al WhatsApp directo
+      if (err && err.name === 'AbortError') return;
     }
   }
 
@@ -506,7 +510,7 @@ async function getInterpretation(runes, question, titanMode) {
       return;
     }
     loadingInterp.style.display = 'none';
-    interpText.innerHTML = renderInterp(data.text, runes, titanMode);
+    interpText.innerHTML = renderInterp(data.text, runes, titanMode, question);
     resetBtn.style.display = 'block';
   } catch (err) {
     showError('No se pudo contactar con el servidor.', err && err.message ? err.message : String(err));
